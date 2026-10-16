@@ -1,0 +1,14 @@
+.git
+.superpowers
+node_modules
+data
+.env
+*.zip
+*.log
+backups
+dist
+AGENTS.md
+docs
+RELEASE.json
+CHECKSUMS.sha256
+.env.*

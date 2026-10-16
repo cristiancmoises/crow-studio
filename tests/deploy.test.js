@@ -1,0 +1,22 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {mkdtemp,mkdir,copyFile,writeFile,readFile,stat,rm} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+import {execFileSync} from 'node:child_process';
+test('bootstrap generates private credentials and preserves existing configuration',async t=>{
+  const dir=await mkdtemp(join(tmpdir(),'crow-bootstrap-'));
+  t.after(()=>rm(dir,{recursive:true,force:true}));
+  await mkdir(join(dir,'scripts'));await mkdir(join(dir,'bin'));
+  await copyFile('scripts/start.sh',join(dir,'scripts/start.sh'));
+  await writeFile(join(dir,'bin/docker'),'#!/bin/sh\nprintf "%s\\n" "$*" >> "$CALLS_FILE"\n',{mode:0o700});
+  const env={...process.env,PATH:join(dir,'bin')+':'+process.env.PATH,CALLS_FILE:join(dir,'calls')};
+  const output=execFileSync('sh',[join(dir,'scripts/start.sh')],{env,encoding:'utf8'});
+  const before=await readFile(join(dir,'.env'),'utf8');
+  assert.match(before,/STUDIO_PASSWORD=[a-f0-9]{48}/);assert.match(before,/SESSION_SECRET=[a-f0-9]{64}/);
+  assert.equal((await stat(join(dir,'.env'))).mode&0o777,0o600);
+  assert.ok(output.includes('Senha do workspace'));
+  const again=execFileSync('sh',[join(dir,'scripts/start.sh')],{env,encoding:'utf8'});
+  assert.equal(await readFile(join(dir,'.env'),'utf8'),before);assert.ok(!again.includes('Senha do workspace'));
+  assert.match(await readFile(join(dir,'calls'),'utf8'),/compose up -d --build/);
+});

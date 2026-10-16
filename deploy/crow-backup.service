@@ -1,0 +1,10 @@
+[Unit]
+Description=Crow Studio database backup
+Requires=docker.service
+After=docker.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/srv/crow
+ExecStart=/bin/sh /srv/crow/scripts/backup-persistent.sh
+UMask=0077
