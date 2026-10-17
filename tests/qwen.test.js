@@ -44,12 +44,16 @@ test('real CLI timeout terminates the request instead of waiting forever',async 
   await assert.rejects(()=>generateDesign({prompt:'Crie uma capa.',page},{apiKey:'fixture',baseUrl:`http://127.0.0.1:${fixture.address().port}/v1`,model:'fixture',timeoutMs:1200}),e=>e.status===504);
 });
 test('an abort signal terminates an active real CLI invocation',async t=>{
-  let called;const started=new Promise(r=>called=r);
-  const fixture=createServer((req,res)=>{called();});
+  let called,didStart=false;const started=new Promise(r=>called=r);
+  const fixture=createServer((req,res)=>{didStart=true;called();});
   await new Promise(r=>fixture.listen(0,'127.0.0.1',r));
   t.after(()=>{fixture.closeAllConnections();fixture.close();});
   const controller=new AbortController();
-  const result=generateDesign({prompt:'Crie uma capa.',page},{apiKey:'fixture',baseUrl:`http://127.0.0.1:${fixture.address().port}/v1`,model:'fixture',timeoutMs:3000},{signal:controller.signal});
-  await started;controller.abort();
-  await assert.rejects(()=>result,e=>e.status===499);
+  const result=generateDesign({prompt:'Crie uma capa.',page},{apiKey:'fixture',baseUrl:`http://127.0.0.1:${fixture.address().port}/v1`,model:'fixture',timeoutMs:20000},{signal:controller.signal});
+  const rejected=assert.rejects(()=>result,e=>e.status===499);
+  await Promise.race([started,rejected]);
+  assert.equal(didStart,true,'the CLI must reach the controlled endpoint before cancellation');
+  const cancelledAt=performance.now();controller.abort();
+  await rejected;
+  assert.ok(performance.now()-cancelledAt<1500,'cancellation must stop active work promptly');
 });

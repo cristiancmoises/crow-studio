@@ -2,221 +2,92 @@
 
 **Suas ideias. Suas asas.**
 
-Editor visual open source e self-hosted, com identidade própria, templates
-originais e Qwen Code integrado. Interface PT-BR escura com ciano e símbolo de
-corvo. By Security Ops®.
+Editor visual aberto e hospedável para posts, cartazes e apresentações. A versão
+**0.2.0** reúne catálogo de composições originais, geração com Qwen local,
+demonstração pública limitada e exportação de apresentações editáveis.
+Licença **Apache-2.0**. By Security Ops®.
 
-Versão **0.1.0**. Licença **Apache-2.0**. Disponível em
-[crow.securityops.co](https://crow.securityops.co), com autenticação.
-Consulte [a verificação](docs/VERIFICATION.md) para os testes e limites desta
-implantação. Não possui associação com o Canva.
+[English](README.en.md) · [Guia PT-BR](docs/GUIDE.pt-BR.md) ·
+[Implantação](docs/DEPLOYMENT.md) · [Integridade](docs/INTEGRITY.md)
+
+## Acessar
+
+| Entrada | Endereço |
+| --- | --- |
+| Estúdio com autenticação | [crow.securityops.co](https://crow.securityops.co) |
+| Domínio alternativo | [crow.securityops.com.br](https://crow.securityops.com.br) |
+| Demonstração sem login | [crow.securityops.co/demo](https://crow.securityops.co/demo) |
+| Demonstração alternativa | [crow.securityops.com.br/demo](https://crow.securityops.com.br/demo) |
+
+Os projetos da demonstração ficam no navegador e não acessam o workspace
+privado. Edição e exportação são locais; a geração pública possui orçamento
+limitado. A interface de edição está em português brasileiro.
 
 ## Iniciar com Docker
 
-Requisitos: Docker Engine com Compose v2, acesso ao registry npm e às imagens
-oficiais Node no primeiro build. Em Windows, use Docker Desktop com containers
-Linux e execute o script pelo Git Bash ou WSL. Em servidores GNU/Linux, use `sh`.
-
-Extraia o pacote, entre na pasta `crow-studio-0.1.0` e execute:
+Requisitos: Docker Engine com Compose v2. Em Windows, use containers Linux e Git
+Bash ou WSL. A primeira instalação precisa de rede para obter imagens e pesos.
+Verifique o pacote, extraia e entre em `crow-studio-0.2.0`:
 
 ```sh
-sh scripts/start.sh
+sh scripts/provision-model.sh && sh scripts/start.sh
 ```
 
-O script gera uma senha aleatória de 48 caracteres e um secret de sessão, grava
-`.env` com permissão 600 e inicia `docker compose up -d --build`. A senha aparece
-uma vez no terminal. Guarde-a. O script preserva um `.env` existente.
+O provisionador baixa o modelo padrão em uma etapa temporária sem publicar
+portas; a inferência de uso normal permanece em rede Docker interna.
+`start.sh` gera um `.env` privado quando necessário e preserva a configuração
+existente. Instalações novas usam Ollama com timeout de 85 segundos; o script
+provisiona ou verifica o modelo fixado antes de iniciar. Consulte a senha no
+`.env` local. Com `AI_PROVIDER=qwen-code`, ele inicia apenas o estúdio e pula
+o provisionamento local.
 
-Abra **http://localhost:8098**. A porta padrão é publicada apenas em loopback.
-O primeiro build depende da conexão e do cache; não existe imagem pré-publicada
-nesta entrega. O projeto não requer PostgreSQL, Redis ou GPU para o editor.
-Modelos locais de IA têm requisitos próprios, separados do aplicativo.
+Abra **http://localhost:8098** ou **http://localhost:8098/demo**. A porta padrão
+fica em loopback. O editor também funciona sem provisionar o modelo; a geração
+fica indisponível até configurá-lo. Consulte o [guia](docs/GUIDE.pt-BR.md) para
+requisitos de espaço, HTTPS, limites, backup e recuperação.
+
+## Recursos
+
+- **4.812 composições**: 20 famílias de layout × 6 paletas × 8 temas × 5 formatos,
+  mais 12 templates preservados. São variações combinadas, não 4.812 layouts
+  independentes. As cenas são construídas sob demanda.
+- Texto, formas, imagens locais no estúdio, alinhamento, camadas, páginas,
+  histórico e salvamento automático com controle de revisão.
+- Propostas editáveis com Qwen local, sem chamadas pagas por padrão. O adaptador
+  Qwen Code permanece disponível para instalações compatíveis.
+- PNG/SVG da página atual, PDF de todas as páginas, JSON completo e **PPTX com um
+  slide por página**, mantendo texto e formas editáveis.
+- Demo com até 5 projetos locais e 3 páginas por projeto, sem importação de
+  arquivos e com limites explícitos de armazenamento e geração.
+
+Fontes podem variar entre computadores. PDF é rasterizado. PPTX converte WebP
+para PNG e ajusta páginas de tamanhos diferentes ao formato da primeira.
+Veja [os detalhes de exportação](docs/GUIDE.pt-BR.md#apresentações-e-exportação).
+
+## Código e verificação
+
+| Remoto | Repositório |
+| --- | --- |
+| Security Ops | [git.securityops.co/cristiancmoises/crow-studio](https://git.securityops.co/cristiancmoises/crow-studio) |
+| Security Ops Brasil | [git.securityops.com.br/cristiancmoises/crow-studio](https://git.securityops.com.br/cristiancmoises/crow-studio) |
+| Codeberg | [codeberg.org/berkeley/crow-studio](https://codeberg.org/berkeley/crow-studio) |
+| GitHub | [github.com/cristiancmoises/crow-studio](https://github.com/cristiancmoises/crow-studio) |
+
+Desenvolvimento com Node.js 24 ou superior:
 
 ```sh
-docker compose ps
-docker compose logs --tail=100 studio
-docker compose stop
-docker compose start
-```
-
-Os projetos permanecem no volume `crow-studio_crow_data`. O nome estável do
-projeto Compose preserva o mesmo volume quando a pasta do código muda de versão.
-Não execute `docker compose down -v` se quiser manter seus dados.
-
-## O que você pode criar
-
-- Posts, stories, capas, cartazes, apresentações e formatos personalizados.
-- 12 templates vetoriais originais, sem downloads de bancos de imagem.
-- Texto, fontes do sistema, cores, formas, imagens PNG/JPEG/WebP locais.
-- Arrastar, redimensionar, girar, alinhar, ordenar, ocultar e bloquear elementos.
-- Páginas, zoom, duplicação, undo/redo e atalhos de teclado.
-- Projetos persistentes, favoritos, busca e kit de marca compartilhado.
-- Salvamento automático serializado com detecção de conflito entre abas.
-- PNG/SVG da página atual, PDF de todas as páginas e JSON editável completo.
-
-PNG e PDF são renderizados no navegador a partir do mesmo SVG da página. O PDF
-é rasterizado. SVG mantém texto e formas vetoriais; imagens raster permanecem
-embutidas. Fontes podem variar entre sistemas. Imagens importadas são otimizadas
-para até 1800 px no lado maior; não há upload separado ou serviço de fotos.
-Miniaturas da listagem representam imagens enviadas com um bloco de cor para
-evitar transferir imagens grandes em todas as consultas. Abrir/exportar preserva
-a imagem real.
-
-Limites de integridade: 20 páginas, 200 elementos/página, 4096 px por lado e 20 MB
-por projeto. PNG de alta resolução respeita 4096 px no lado maior. A listagem
-mostra até 500 projetos mais recentes. Não há colaboração em tempo real,
-contas individuais, vídeo, arquivos Canva ou biblioteca de fotos licenciadas.
-
-## Qwen Code incluído de verdade
-
-O pacote oficial `@qwen-code/qwen-code` **0.25.2** está na imagem Docker. O painel
-do editor chama esse CLI no backend; não é um simulador nem um link externo.
-Configure um provedor de inferência para ativar as criações. Pesos de modelos
-não são incluídos e uma conta ChatGPT não fornece automaticamente uma chave.
-
-Edite `.env` e configure um endpoint OpenAI-compatible:
-
-```dotenv
-OPENAI_API_KEY=sua-chave-do-provedor
-OPENAI_BASE_URL=https://dashscope-intl.aliyuncs.com/compatible-mode/v1
-OPENAI_MODEL=qwen3-coder-plus
-```
-
-Os valores acima ilustram um provedor remoto; use o endpoint, região e modelo
-disponíveis na sua conta. O uso pode ter custo conforme o provedor.
-
-Para um servidor Ollama já instalado e acessível ao container:
-
-```dotenv
-OPENAI_API_KEY=ollama
-OPENAI_BASE_URL=http://host.docker.internal:11434/v1
-OPENAI_MODEL=nome-exato-do-modelo-instalado
-```
-
-O Ollama precisa aceitar conexões da rede Docker. `localhost` dentro do container
-aponta para o próprio container. Em outra máquina, use um endereço privado
-alcançável. Restrinja o serviço de inferência à rede de confiança. Se o modelo
-local não seguir JSON de maneira consistente, a proposta será rejeitada e o
-editor mostrará o erro. Nunca são gerados resultados falsos para ocultar falhas.
-
-Depois de alterar `.env`:
-
-```sh
-docker compose up -d --force-recreate
-```
-
-Abra o design, clique em **Qwen Code**, descreva uma composição e revise a prévia.
-**Aplicar nesta página** substitui a página original e pode ser desfeito. O modelo
-recebe o pedido e o conteúdo textual/geometria da página, sem bytes de imagens.
-O próprio modelo, como serviço separado, pode usar rede, recursos e regras de
-retenção do seu provedor. O editor continua disponível sem configurar IA.
-
-As execuções têm diretório temporário próprio, ambiente sem senha/secret do
-estúdio, ferramentas explicitamente excluídas e orçamento de zero chamadas de
-ferramenta. Não há shell, Docker socket ou pasta do host montada no agente.
-Saída validada contra schema, limite de 2 MB e timeout de 120s (configurável até
-180s). O limite padrão é de 12 pedidos/hora por workspace.
-
-## Rede, HTTPS e Nginx Proxy Manager
-
-Para acessar pela LAN sem proxy, altere `BIND_ADDRESS` para o IP da interface ou
-`0.0.0.0` e configure firewall. Para publicar na internet, prefira proxy HTTPS.
-
-Configure:
-
-```dotenv
-PUBLIC_URL=https://studio.seu-dominio.example
-COOKIE_SECURE=true
-```
-
-No Nginx Proxy Manager que também roda em Docker, o `127.0.0.1` do NPM é o
-próprio container NPM. Conecte `studio` à mesma rede Docker do proxy e use
-**studio:8080** como upstream. Exemplo de `compose.override.yaml` para uma rede
-externa que já exista e seja usada pelo seu NPM:
-
-```yaml
-services:
-  studio:
-    networks:
-      - default
-      - proxy
-networks:
-  proxy:
-    external: true
-    name: npm-bridge
-```
-
-Substitua `npm-bridge` pelo nome real da rede do seu proxy. Preserve a rede
-`default` para a conectividade padrão. No proxy, permita corpo de 24 MB e timeout
-de leitura de pelo menos 190 segundos para IA. Exemplo nas opções avançadas:
-
-```nginx
-client_max_body_size 24m;
-proxy_read_timeout 190s;
-```
-
-Ative certificado e redirecionamento HTTPS. Configure `PUBLIC_URL` com a origem
-exata, sem caminhos; ela é usada na proteção de origem das mutações. Ao definir
-`COOKIE_SECURE=true`, faça login pela URL HTTPS. Atualizar apenas `.env` sem
-recriar o container não atualiza suas variáveis.
-
-## Backup, restauração e atualização
-
-```sh
-sh scripts/backup.sh
-```
-
-O script usa a API de backup online do SQLite, inclui transações no WAL e grava
-um arquivo consistente em `backups/`. Pode receber uma pasta de destino como
-primeiro argumento. Preserve `.env` separadamente em local privado. O backup
-contém projetos e imagens, portanto trate-o como dado privado.
-
-Restauração manual, com o serviço parado: preserve uma cópia do volume atual;
-substitua `/data/studio.sqlite` pelo backup; remova arquivos `studio.sqlite-wal`
-e `studio.sqlite-shm` **somente desse banco parado**; mantenha dono UID/GID 1000;
-inicie o serviço. Faça o primeiro ensaio em outro volume antes de substituir
-dados importantes. Não copie apenas `studio.sqlite` de um banco ativo.
-
-Para atualizar: faça backup, preserve `.env`, substitua o código e execute
-`docker compose up -d --build`. A versão 0.1.0 inicializa seu schema sem apagar
-projetos. Migrações futuras precisam ser verificadas antes de usar bancos reais.
-
-## Desenvolvimento e verificação
-
-Node.js **24 ou superior**:
-
-```sh
-npm ci
+npm ci --ignore-scripts
 npm test
 npm run build
 node scripts/compress.mjs
 npm run smoke
 ```
 
-Para iniciar sem Docker, defina `STUDIO_PASSWORD` (mínimo 16 caracteres) e
-`SESSION_SECRET` no ambiente e execute `npm start`. `DATA_DIR` permite escolher
-a pasta do banco; padrão `./data`. O backend serve o build em `dist` na porta
-8080. Para desenvolvimento visual, use `npm run dev` em outro terminal; o Vite
-encaminha `/api` para o backend em 127.0.0.1:8080. Use apenas em desenvolvimento:
-as duas portas precisam compartilhar o mesmo hostname para os cookies.
+Use o lockfile incluído. [VERIFICATION.md](docs/VERIFICATION.md) identifica os
+resultados observados e a versão a que se referem. A verificação de releases usa
+tags GPG, checksums e CodeMark híbrido sem adicionar comentários ao fonte;
+siga [INTEGRITY.md](docs/INTEGRITY.md).
 
-O relatório [VERIFICATION.md](docs/VERIFICATION.md) distingue testes com CLI real
-e endpoint controlado de inferência com provedor real. A configuração Docker é
-fornecida, mas sua execução precisa ser homologada no host de destino.
-
-## Estrutura e continuidade
-
-`src/`: interface e exportações. `shared/`: modelo, templates, histórico e fila de
-salvamento. `server/`: HTTP, sessões, SQLite e adaptador Qwen. `scripts/`: bootstrap,
-backup, compressão e smoke. `tests/`: testes automatizados.
-
-Veja [ROADMAP.md](docs/ROADMAP.md) para os próximos passos e
-[DEPLOYMENT.md](docs/DEPLOYMENT.md) para a configuração do serviço.
-
-## Licenças
-
-Código e templates originais do Crow Studio: Apache-2.0, Copyright 2026 Security
-Ops contributors. O nome/logo identificam este projeto e não indicam afiliação
-ao Canva. Dependências mantêm suas próprias licenças; consulte
-[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). O fornecedor/modelo escolhido
-para IA tem licença, termos e custos próprios.
+Código e templates originais são Apache-2.0. Dependências e modelos mantêm suas
+licenças: [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). Crow Studio é
+independente e não possui associação com o Canva.

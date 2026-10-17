@@ -2,7 +2,9 @@
 
 O endereço principal é https://crow.securityops.co. O domínio
 https://crow.securityops.com.br redireciona para ele, preservando caminho e
-parâmetros. O serviço exige uma senha compartilhada; não há contas individuais.
+parâmetros. O estúdio exige uma senha compartilhada; não há contas individuais.
+A [demonstração pública](https://crow.securityops.co/demo) abre sem login e
+mantém projetos no navegador, separados do workspace privado.
 
 ## Configuração
 
@@ -68,6 +70,27 @@ imagem e recrie o serviço. Mantenha a imagem anterior até validar login,
 salvamento e restauração. A reinicialização do CT deve preservar o endereço
 interno, as regras de acesso do proxy, o serviço e o agendamento de backup.
 
-O editor funciona sem provedor de geração. Ative essa integração somente após
-configurar e testar um endpoint autorizado; a implantação não inclui pesos de
-modelo nem habilita cobrança externa.
+## Inferência local e demonstração
+
+Antes da primeira inicialização com o modelo padrão, execute
+`sh scripts/provision-model.sh`. O script provisiona `qwen3:1.7b` em um container
+temporário sem portas publicadas e valida seu manifesto fixado. A imagem pode
+exigir 20 GiB livres para download/descompactação; com a imagem presente,
+reserve 8 GiB e preserve um piso final de 6 GiB.
+
+Na operação normal, `AI_PROVIDER=ollama` usa `http://inference:11434`. A inferência
+está em rede Docker `internal: true`, sem portas publicadas, com 2 CPUs, limite
+de memória de 2500 MiB, contexto de 2048 tokens, uma execução e descarga do
+modelo após uso. O aplicativo compartilha esse slot entre estúdio e demo.
+Use o provisionador para baixar pesos, preservando o isolamento da operação.
+
+A API pública limita pedidos a 800 caracteres e corpos a 64 KiB. Os orçamentos
+são 2/hora por rede identificada pelo IP, 8/hora e 30/dia no total, persistidos
+em um banco de quotas separado. Reservas aceitas são consumidas inclusive em
+falhas/cancelamentos. A demo não reutiliza o banco privado de projetos. O proxy
+precisa fornecer um IP real validado para os limites por rede funcionarem.
+
+O editor funciona sem modelo. O adaptador Qwen Code pode ser selecionado com
+`AI_PROVIDER=qwen-code`; provedores externos têm custos e políticas próprios.
+Pesos não acompanham a release fonte. Veja os guias [PT-BR](GUIDE.pt-BR.md) e
+[English](GUIDE.en.md) para instalação, uso, limites e exportações.

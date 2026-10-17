@@ -1,5 +1,6 @@
 import {toSvg} from '../shared/scene.js';
 import type {Page,Document} from './types';
+import {isDemoMode} from './demo';
 export const safeName=(name:string)=>name.replace(/[^\p{L}\p{N}_ -]/gu,'').trim().slice(0,100)||'crow-design';
 export function download(data:Blob|string,name:string,type='application/json'){
   const blob=typeof data==='string'?new Blob([data],{type}):data,url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),30000);
@@ -14,6 +15,7 @@ async function raster(page:Page,multiplier:number){
 export async function exportDocument(doc:Document,current:number,format:string,multiplier=1){
   const name=safeName(doc.name),page=doc.pages[current];
   if(format==='json'){download(JSON.stringify(doc,null,2),name+'.json');return;}
+  if(format==='pptx'){const {exportPptx}=await import('./pptx');await exportPptx(doc);return;}
   if(format==='svg'){download(toSvg(page),`${name}-${current+1}.svg`,'image/svg+xml');return;}
   if(format==='png'){const canvas=await raster(page,multiplier);const blob=await new Promise<Blob>((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(new Error('Falha na exportação PNG.')),'image/png'));download(blob,`${name}-${current+1}.png`);return;}
   if(format==='pdf'){
@@ -24,6 +26,7 @@ export async function exportDocument(doc:Document,current:number,format:string,m
   }
 }
 export async function readImage(file:File):Promise<{src:string;width:number;height:number}>{
+  if(isDemoMode())throw new Error('A importação de imagens está desabilitada na demonstração.');
   if(!['image/png','image/jpeg','image/webp'].includes(file.type))throw new Error('Escolha uma imagem PNG, JPEG ou WebP.');
   if(file.size>15*1024*1024)throw new Error('A imagem deve ter até 15 MB antes da otimização.');
   const bitmap=await createImageBitmap(file);
